@@ -1,14 +1,22 @@
-# Background
+# Titanic Survival Exercises
 
-Astronomy is one of the oldest data-driven sciences. In the late 1800s, the director of the Harvard College Observatory hired women to analyze astronomical data, which at the time was done using photographic glass plates. These women became known as the “Harvard Computers”. They computed the position and luminosity of various astronomical objects such as stars and galaxies. (If you are interested, you can learn more about the Harvard Computers). Today, astronomy is even more of a data-driven science, with an inordinate amount of data being produced by modern instruments every day.
+Put all your new skills together to perform exploratory data analysis on a classic machine learning dataset: Titanic survival!
 
-In the following exercises we will analyze some actual astronomical data to inspect properties of stars, their absolute magnitude (which relates to a star's luminosity, or brightness), temperature and type (spectral class).
+## Background
+
+The Titanic was a British ocean liner that struck an iceberg and sunk on its maiden voyage in 1912 from the United Kingdom to New York. More than 1,500 of the estimated 2,224 passengers and crew died in the accident, making this one of the largest maritime disasters ever outside of war. The ship carried a wide range of passengers of all ages and both genders, from luxury travelers in first-class to immigrants in the lower classes. However, not all passengers were equally likely to survive the accident. We use real data about a selection of 891 passengers to learn who was on the Titanic and which passengers were more likely to survive.
 
 ### Libraries and Options
 
+Define the titanic dataset starting from the titanic library with the following code:
+
 ```
+options(digits = 3)    # report 3 significant digits
 library(tidyverse)
-library(dslabs)
-data(stars)
-options(digits = 3)   # report 3 significant digits
+library(titanic)
+titanic <- titanic_train %>%
+    select(Survived, Pclass, Sex, Age, SibSp, Parch, Fare) %>%
+    mutate(Survived = factor(Survived),
+           Pclass = factor(Pclass),
+           Sex = factor(Sex))
 ```
