@@ -17,7 +17,7 @@ Everything I've learned from the HarvardX's Data Science Professional Certificat
 
 ## Author
 
-* **Vasu Goel** (https://vasugoel.coml)
+* **Vasu Goel** (https://vasugoel.com)
 
 
 ## License
