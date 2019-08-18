@@ -2,6 +2,7 @@
 
 Everything I've learned from the HarvardX's Data Science Professional Certificate (HarvardX: PH125x). This repository contains all the codes and programming exercises I've worked on during the course.
 
+
 ## What we learned? 
 * Fundamental R programming skills
 * Statistical concepts such as probability, inference, and modeling and how to apply them in practice
@@ -17,8 +18,11 @@ Everything I've learned from the HarvardX's Data Science Professional Certificat
 
 ## Author
 
-* **Vasu Goel** (https://vasugoel.com)
+**Vasu Goel** -
 
+Website: (https://vasugoel.com)
+
+DataCamp: (https://datacamp.com/profile/vasugoel)
 
 ## License
 
