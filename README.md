@@ -22,7 +22,7 @@ Everything I've learned from the HarvardX's Data Science Professional Certificat
 
 Website: (https://vasugoel.com)
 
-DataCamp: https://datacamp.com/profile/vasugoel
+DataCamp: (https://datacamp.com/profile/vasugoel)
 
 ## License
 
