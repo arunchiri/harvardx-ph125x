@@ -1,5 +1,5 @@
 ---
-title: 'Capstone Project: MovieLens'
+title: 'Netflix Challenge - Improving Movie Recommendations'
 author: "Vasu Goel"
 date: "10/2/2019"
 output:
@@ -9,7 +9,7 @@ output:
 
 # Introduction
 
-This Capstone Project is part of the edx course HarvardX:PH125.9x Data Science: Capstone and is based on the challenge that Netflix offered to the data science community.The challenge was to improve Netflix’s movie recommendation system by 10%. The Netflix movie rating scheme uses a rating range from 0 to 5. In this project the objective is to train a machine learning algorithm using inputs from one data set to predict movie ratings in another data set. The data set from which the two sets mentioned previously will be created can be found using the following link:
+This Project is part of the edx course HarvardX:PH125.9x Data Science: Capstone and is based on the challenge that Netflix offered to the data science community.The challenge was to improve Netflix’s movie recommendation system by 10%. The Netflix movie rating scheme uses a rating range from 0 to 5. In this project the objective is to train a machine learning algorithm using inputs from one data set to predict movie ratings in another data set. The data set from which the two sets mentioned previously will be created can be found using the following link:
 
 http://files.grouplens.org/datasets/movielens/ml-10m.zip
 
@@ -21,7 +21,9 @@ Although predicting ratings seems easy, there are many different biases in the m
 The Netflix challenge used the typical error loss: they decided on a winner based on the residual mean squared error (RMSE) on a test set. To provide satisfying results many different models were trained for this project and the best model was chosen based on the RMSE on the validation set.
 
 
-## Getting Data
+# Data Wrangling
+
+## Getting and Cleaning Data
 
 First step in any data analysis project is to get the data. The Netflix data is not publicly available, but the GroupLens research lab generated their own database with over 20 million ratings for over 27,000 movies by more than 138,000 users. In this analysis, a smaller subset of about 10 million ratings was used.
 
@@ -32,7 +34,7 @@ We can download the 10M version of MovieLens dataset used in the analysis using 
 gc(full = TRUE)
 ```
 
-```{r getting data, message=FALSE, warning=FALSE}
+```{r getting clearning data, message=FALSE, warning=FALSE, eval = FALSE}
 # Note: this process could take a couple of minutes
 
 if(!require(tidyverse))
@@ -67,7 +69,7 @@ movielens <- left_join(ratings, movies, by = "movieId")
 Use the following code to generate the datasets. The algorithm was developed using the edx set. For a final test of the algorithm we predict movie ratings in the validation set as if they were unknown.
 
 
-```{r train test set, message=FALSE, warning=FALSE}
+```{r train test set, message=FALSE, warning=FALSE, eval = FALSE}
 # Validation set will be 10% of MovieLens data
 
 set.seed(1, sample.kind="Rounding")
@@ -88,6 +90,18 @@ removed <- anti_join(temp, validation)
 edx <- rbind(edx, removed)
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
+```
+
+``` {r load rda, echo = FALSE, message= FALSE, warning = FALSE}
+if(!require(tidyverse))
+  install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caret)) 
+  install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(data.table)) 
+  install.packages("data.table", repos = "http://cran.us.r-project.org")
+
+load('rdas/edx.rda')
+load('rdas/validation.rda')
 ```
 
 
@@ -393,5 +407,13 @@ As we see from the results each model is an improvement from the previous one wi
 
 The simplest model which predicts the same rating (mean rating) for all movies regardless of user gave an RMSE above 1. If RMSE is larger than 1, it means our typical error is larger than one star, which is not good. By taking into consideration the *movie effect* the RMSE went down to 0.9439087 which was a great improvement. RMSE further went down to 0.8653488 after modelling the *user effect* in the previous model. However, the lowest RMSE i.e, 0.8648201 was achieved by regularizing the movie and user effect, which penalized larger estimates of ratings from relatively small sample size of users.
 
-Subsequently, regularizing the *year* and *genres* effects can further improve the residual mean squared error but this process is computationally expensive.
+Subsequently, regularizing the *year* and *genres* effects can further improve the residual mean squared error but regularizing the *genres* is computationally very expensive since it requires separating multiple genres for many movies into multiple observations for a given movie *i* having single genre in *genres* column.
 
+
+# References
+
+* https://bits.blogs.nytimes.com/2009/09/21/netflix-awards-1-million-prize-and-starts-a-new-contest
+
+* http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary
+
+* https://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf
