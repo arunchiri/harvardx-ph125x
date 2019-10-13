@@ -1,7 +1,7 @@
 ---
 title: 'Netflix Challenge - Improving Movie Recommendations'
 author: "Vasu Goel"
-date: "10/2/2019"
+date: "October 2, 2019"
 output:
   pdf_document: default
 ---
@@ -9,7 +9,7 @@ output:
 
 # Introduction
 
-This Project is part of the edx course HarvardX:PH125.9x Data Science: Capstone and is based on the challenge that Netflix offered to the data science community.The challenge was to improve Netflix’s movie recommendation system by 10%. The Netflix movie rating scheme uses a rating range from 0 to 5. In this project the objective is to train a machine learning algorithm using inputs from one data set to predict movie ratings in another data set. The data set from which the two sets mentioned previously will be created can be found using the following link:
+This analysis is based on the challenge that Netflix offered to the data science community.The challenge was to improve Netflix’s movie recommendation system by 10%. The Netflix movie rating scheme uses a rating range from 0 to 5. In this project the objective is to train a machine learning algorithm using inputs from one data set to predict movie ratings in another data set. The data set from which the two sets mentioned previously will be created can be found using the following link:
 
 http://files.grouplens.org/datasets/movielens/ml-10m.zip
 
@@ -66,7 +66,7 @@ movielens <- left_join(ratings, movies, by = "movieId")
 
 ## Create Train and Validation Sets
 
-Use the following code to generate the datasets. The algorithm was developed using the edx set. For a final test of the algorithm we predict movie ratings in the validation set as if they were unknown.
+Use the following code to generate the datasets. The algorithm was developed using the train set. For a final test of the algorithm we predict movie ratings in the validation set as if they were unknown.
 
 
 ```{r train test set, message=FALSE, warning=FALSE, eval = FALSE}
@@ -75,19 +75,19 @@ Use the following code to generate the datasets. The algorithm was developed usi
 set.seed(1, sample.kind="Rounding")
 # if using R 3.5 or earlier, use `set.seed(1)` instead
 test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
-edx <- movielens[-test_index,]
+train <- movielens[-test_index,]
 temp <- movielens[test_index,]
 
-# Make sure userId and movieId in validation set are also in edx set
+# Make sure userId and movieId in validation set are also in train set
 
 validation <- temp %>% 
-     semi_join(edx, by = "movieId") %>%
-     semi_join(edx, by = "userId")
+     semi_join(train, by = "movieId") %>%
+     semi_join(train, by = "userId")
 
-# Add rows removed from validation set back into edx set
+# Add rows removed from validation set back into train set
 
 removed <- anti_join(temp, validation)
-edx <- rbind(edx, removed)
+train <- rbind(train, removed)
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 ```
@@ -100,19 +100,19 @@ if(!require(caret))
 if(!require(data.table)) 
   install.packages("data.table", repos = "http://cran.us.r-project.org")
 
-load('rdas/edx.rda')
+load('rdas/train.rda')
 load('rdas/validation.rda')
 ```
 
 
 # MovieLens Data
 
-MovieLens dataset initially had 10 million ratings (rows) with 6 variables (columns) which were partitioned into *edx* and *validation* sets containing ~9M and ~1M ratings respectively.
+MovieLens dataset initially had 10 million ratings (rows) with 6 variables (columns) which were partitioned into *train* and *validation* sets containing ~9M and ~1M ratings respectively.
 
 We can see the sets are in tidy format: 
 
-```{r edx, warning = FALSE, message = FALSE}
-edx %>% as_tibble()
+```{r train, warning = FALSE, message = FALSE}
+train %>% as_tibble()
 ```
 
 ```{r validation, warning = FALSE, message = FALSE}
@@ -122,10 +122,10 @@ validation %>% as_tibble()
 
 ## Data Exploration
 
-Each row represents a rating given by one user to one movie. We can see the number of unique users that provided ratings and how many unique movies were rated in the *edx* set:
+Each row represents a rating given by one user to one movie. We can see the number of unique users that provided ratings and how many unique movies were rated in the *train* set:
 
 ```{r unique users movies, warning = FALSE, message = FALSE}
-edx %>% 
+train %>% 
   summarize(n_users = n_distinct(userId),
             n_movies = n_distinct(movieId))
 ```
@@ -135,9 +135,9 @@ If we multiply those two numbers we get a number much larger than 10M which mean
 You can think of the task of a recommendation system as filling in those missing values. To see how sparse the matrix is, here is the matrix for a random sample of 100 movies and 100 users with yellow indicating a user/movie combination for which we have a rating.
 
 ```{r sparse matrix, message=FALSE, warning=FALSE}
-users <- sample(unique(edx$userId), 100)
+users <- sample(unique(train$userId), 100)
 rafalib::mypar()
-edx %>% filter(userId %in% users) %>% 
+train %>% filter(userId %in% users) %>% 
   select(userId, movieId, rating) %>%
   mutate(rating = 1) %>%
   spread(movieId, rating) %>% select(sample(ncol(.), 100)) %>% 
@@ -156,7 +156,7 @@ Let’s look at some of the general properties of the data to better understand 
 The first thing we notice is that some movies get rated more than others. Here is the distribution:
 
 ```{r movie distribution, message=FALSE, warning=FALSE}
-edx %>% 
+train %>% 
   dplyr::count(movieId) %>% 
   ggplot(aes(n)) + 
   geom_histogram(bins = 30, color = "black") + 
@@ -169,7 +169,7 @@ This should not surprise us given that there are blockbuster movies watched by m
 Our second observation is that some users are more active than others at rating movies:
 
 ```{r user distribution, message=FALSE, warning=FALSE}
-edx %>%
+train %>%
   dplyr::count(userId) %>% 
   ggplot(aes(n)) + 
   geom_histogram(bins = 30, color = "black") + 
@@ -210,7 +210,7 @@ $$Y_{u,i} = \mu + \epsilon_{u,i}$$
 with $\epsilon_{u,i}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and, in this case, is the average of all ratings:
 
 ``` {r mu_hat, warning = FALSE, message = FALSE}
-mu_hat <- mean(edx$rating)
+mu_hat <- mean(train$rating)
 mu_hat
 ```
 
@@ -238,8 +238,8 @@ $$Y_{u,i} = \mu + b_{i} + \epsilon_{u,i}$$
 These bs are referred to as *effects* or *bias*, thus the *b* notation. We know that the least square estimate $b_{i}$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie *i*. We can compute them as follows: 
 
 ``` {r movie_avgs, warning = FALSE, message = FALSE}
-mu <- mean(edx$rating)
-movie_avgs <- edx %>% 
+mu <- mean(train$rating)
+movie_avgs <- train %>% 
                 group_by(movieId) %>% 
                 summarize(b_i = mean(rating - mu))
 ```
@@ -274,7 +274,7 @@ We already see an improvement. But can we make it better?
 Let’s compute the average rating for user *u* for those that have rated over 100 movies:
 
 ``` {r user-bias, warning = FALSE, message = FALSE}
-edx %>% group_by(userId) %>% 
+train %>% group_by(userId) %>% 
             summarize(b_u = mean(rating)) %>% 
             filter(n() >= 100) %>% 
             ggplot(aes(b_u)) + 
@@ -290,7 +290,7 @@ where $b_{u}$ is a user-specific effect. Now if a cranky user (negative $b_{u}$)
 We will compute an approximation by computing $\hat{\mu}$ and $\hat{b_{i}}$ and estimating $\hat{b_{u}}$ as the average of $y_{u,i} - \hat{\mu} - \hat{b_{i}}$: 
 
 ```{r user_avgs, warning=FALSE, message=FALSE}
-user_avgs <- edx %>% 
+user_avgs <- train %>% 
                 left_join(movie_avgs, by='movieId') %>%
                 group_by(userId) %>%
                 summarize(b_u = mean(rating - mu - b_i))
@@ -349,13 +349,13 @@ lambdas <- seq(0, 10, 0.5)
 
 rmses <- sapply(lambdas, function(l){
   
-  mu <- mean(edx$rating)
+  mu <- mean(train$rating)
   
-  b_i <- edx %>% 
+  b_i <- train %>% 
     group_by(movieId) %>%
     summarize(b_i = sum(rating - mu)/(n()+l))
   
-  b_u <- edx %>% 
+  b_u <- train %>% 
     left_join(b_i, by="movieId") %>%
     group_by(userId) %>%
     summarize(b_u = sum(rating - b_i - mu)/(n()+l))
